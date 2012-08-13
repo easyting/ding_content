@@ -158,7 +158,7 @@ function ding_content_media_browser_plugin_view($plugin_name, $params) {
         '#markup' => '<div id="container"><div id="scrollbox"><ul id="media-browser-library-list" class="media-list-thumbnails"></ul><div id="status"></div></div></div>',
       );
 
-    break;
+      break;
   }
 
   return array();
@@ -272,7 +272,7 @@ function ding_content_field_widget_form(&$form, &$form_state, $field, $instance,
           $element['#description'] = t('Select the libraries this content should be associated with.');
         }
 
-        $element['#multiple'] = $field['cardinality'] > 1 || $field['cardinality'] == FIELD_CARDINALITY_UNLIMITED;;
+        $element['#multiple'] = $field['cardinality'] > 1 || $field['cardinality'] == FIELD_CARDINALITY_UNLIMITED;
         // Don't make the field required, if there are no groups.
         $element['#required'] = $element['#required'] && !empty($options);
 
