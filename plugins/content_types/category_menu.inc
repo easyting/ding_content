@@ -9,7 +9,7 @@ $plugin = array(
   'category' => t('Ding!'),
   'required context' => array(new ctools_context_optional(t('Selected category'), array('term', 'taxonomy_term')), new ctools_context_optional(t('Library'), 'node')),
   'defaults' => array(
-    'type' => 'news',
+    'type' => 'category',
   ),
 );
 
@@ -67,6 +67,7 @@ function ding_content_category_menu_content_type_edit_form($form, &$form_state) 
     '#options' => array(
       'news' => t('News'),
       'events' => t('Events'),
+      'category' => t('Combined'),
     ),
     '#default_value' => !empty($conf['type']) ? $conf['type'] : 'news',
     '#required' => TRUE,
