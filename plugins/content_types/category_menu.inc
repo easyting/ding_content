@@ -21,6 +21,7 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
   if (isset($context[0]->data)) {
     $selected_term = $context[0]->data;
   }
+
   if (isset($context[1]->data)) {
     $library = $context[1]->data;
     $uri = entity_uri('node', $library);
@@ -30,12 +31,15 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
     $base = $conf['type'];
   }
 
-  $options = array();
-  if (!$selected_term) {
-    $options = array('attributes' => array('class' => array('active')));
+  if (isset($panel_args[0])) {
+    $node = node_load($panel_args[0]);
+    if (isset($node->field_category['und'][0]['tid'])) {
+      $selected_term->tid = $node->field_category['und'][0]['tid'];
+    }
   }
-  // Might seem a bit odd to select 'all' when node doesn't have any category,
-  // but we'll go with that for the moment being.
+
+  $options = array();
+
   $items = array(l(t('All categories'), $base . '/all', $options));
 
   $vocabulary = taxonomy_vocabulary_machine_name_load('category');
@@ -50,6 +54,7 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
     }
     $items[] = l($term->name, $base . '/' . drupal_strtolower($term->name), $options);
   }
+
   $block->content = theme('item_list', array('items' => $items));
 
   return $block;

@@ -19,34 +19,34 @@ projects[ting_reference][download][url] = git@github.com:ding2/ting_reference.gi
 projects[ting_reference][download][tag] = "7.x-0.18"
 
 ; Contrib modules
+
 projects[cache_actions][type] = module
 projects[cache_actions][subdir] = contrib
-projects[cache_actions][version] = 2.0-alpha3
+projects[cache_actions][version] = "2.0-alpha5"
 
 projects[ctools][type] = module
 projects[ctools][subdir] = contrib
-projects[ctools][version] = 1.0
+projects[ctools][version] = "1.1"
 
 projects[entity][type] = module
 projects[entity][subdir] = contrib
-projects[entity][version] = 1.0-rc1
+projects[entity][version] = "1.0-rc3"
 
 projects[features][type] = module
 projects[features][subdir] = contrib
-projects[features][version] = 1.0-rc3
-
+projects[features][version] = "1.0"
 
 projects[media][type] = module
 projects[media][subdir] = contrib
-projects[media][version] = 1.0-rc3
+projects[media][version] = "2.0-unstable6"
 
 projects[panels][type] = module
 projects[panels][subdir] = contrib
-projects[panels][version] = 3.2
+projects[panels][version] = "3.2"
 
 projects[rules][type] = module
 projects[rules][subdir] = contrib
-projects[rules][version] = 2.0
+projects[rules][version] = "2.2"
 
 projects[similarterms][type] = module
 projects[similarterms][subdir] = contrib
@@ -56,21 +56,22 @@ projects[similarterms][download][revision] = d0f10f5fdcb3a16855cff93094c4139a32e
 projects[similarterms][patch][] = https://raw.github.com/ding2/patches/master/similarterms-combined-patches.patch
 
 projects[strongarm][subdir] = contrib
-projects[strongarm][version] = 2.0-beta4
+projects[strongarm][version] = "2.0"
 
 projects[views][type] = module
 projects[views][subdir] = contrib
-projects[views][version] = 3.3
+projects[views][version] = "3.3"
 
 projects[workbench][type] = module
 projects[workbench][subdir] = contrib
-projects[workbench][version] = 1.1
+projects[workbench][version] = "1.1"
 
 projects[wysiwyg][type] = module
 projects[wysiwyg][subdir] = contrib
-projects[wysiwyg][version] = 2.1
+projects[wysiwyg][version] = "2.1"
 
 ; Libraries
+
 libraries[ckeditor][download][type] = get
 libraries[ckeditor][download][url] = http://download.cksource.com/CKEditor/CKEditor/CKEditor%203.6.2/ckeditor_3.6.2.zip
 libraries[ckeditor][directory_name] = ckeditor
