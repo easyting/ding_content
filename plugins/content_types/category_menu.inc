@@ -31,7 +31,8 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
     $base = $conf['type'];
   }
 
-  if (isset($panel_args[0])) {
+  // Only for node landing page to highlight the category in the list
+  if (arg(0) == 'node' && isset($panel_args[0])) {
     $node = node_load($panel_args[0]);
     if (isset($node->field_category['und'][0]['tid'])) {
       $selected_term->tid = $node->field_category['und'][0]['tid'];
@@ -39,8 +40,6 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
   }
 
   $options = array();
-
-  $items = array(l(t('All categories'), $base . '/all', $options));
 
   $vocabulary = taxonomy_vocabulary_machine_name_load('category');
   $terms = taxonomy_get_tree($vocabulary->vid);
@@ -52,7 +51,7 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
     else {
       $options = array();
     }
-    $items[] = l($term->name, $base . '/' . $term->tid, $options);
+    $items[] = l($term->name, $base . '/' . drupal_strtolower($term->name), $options);
   }
 
   $block->content = theme('item_list', array('items' => $items));
