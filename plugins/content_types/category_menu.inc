@@ -51,7 +51,25 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
     else {
       $options = array();
     }
-    $items[] = l($term->name, $base . '/' . drupal_strtolower($term->name), $options);
+
+    // @todo: will anything other than "combined" (base = category) be used?
+    $use_conf_base = FALSE;
+    if ($base == 'category') {
+      $term_alias = drupal_lookup_path('alias', 'taxonomy/term/' . $term->tid);
+      if ($term_alias) {
+        $items[] = l($term->name, $term_alias, $options);
+      }
+      else {
+        $use_conf_base = TRUE;
+      }
+    }
+    else {
+      $use_conf_base = TRUE;
+    }
+
+    if ($use_conf_base) {
+      $items[] = l($term->name, $base . '/' . drupal_strtolower($term->name), $options);
+    }
   }
 
   $block->content = theme('item_list', array('items' => $items));
