@@ -31,7 +31,8 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
     $base = $conf['type'];
   }
 
-  // Only for node landing page to highlight the category in the list
+  $node = NULL;
+  // Only for node landing page to highlight the category in the list.
   if (arg(0) == 'node' && isset($panel_args[0])) {
     $node = node_load($panel_args[0]);
     if (isset($node->field_category['und'][0]['tid'])) {
@@ -52,6 +53,20 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
       $options = array();
     }
 
+    // Check if there are nodes attached to this term.
+    if (is_object($node)) {
+      $count = db_select('field_data_field_category')
+        ->condition('field_category_tid', $term->tid)
+        ->condition('bundle', $node->type)
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+
+      // Skip terms which have no nodes.
+      if ($count == 0) {
+        continue;
+      }
+    }
     // @todo: will anything other than "combined" (base = category) be used?
     $use_conf_base = FALSE;
     if ($base == 'category') {
