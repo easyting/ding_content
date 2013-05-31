@@ -17,6 +17,7 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
   $block = new stdClass();
   $library = NULL;
   $selected_term = NULL;
+  $items = array();
 
   if (isset($context[0]->data)) {
     $selected_term = $context[0]->data;
