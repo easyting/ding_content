@@ -26,7 +26,7 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
   if (isset($context[1]->data)) {
     $library = $context[1]->data;
     $uri = entity_uri('node', $library);
-    $base =  $uri['path'] . '/' . $conf['type'];
+    $base = $uri['path'] . '/' . $conf['type'];
   }
   else {
     $base = $conf['type'];
@@ -54,19 +54,29 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
       $options = array();
     }
 
-    // Check if there are nodes attached to this term.
+
     if (is_object($node)) {
+      // Check if there are nodes of the same type attached to this term.
       $count = db_select('field_data_field_category')
         ->condition('field_category_tid', $term->tid)
         ->condition('bundle', $node->type)
         ->countQuery()
         ->execute()
         ->fetchField();
+    }
+    else {
+      // Else check if there is any content marked with the term. This is
+      // for pages that are not of a specific content type.
+      $count = db_select('field_data_field_category')
+        ->condition('field_category_tid', $term->tid)
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+    }
 
-      // Skip terms which have no nodes.
-      if ($count == 0) {
-        continue;
-      }
+    // Skip terms which have no nodes.
+    if ($count == 0) {
+      continue;
     }
     // @todo: will anything other than "combined" (base = category) be used?
     $use_conf_base = FALSE;
@@ -87,9 +97,10 @@ function ding_content_category_menu_content_type_render($subtype, $conf, $panel_
       $items[] = l($term->name, $base . '/' . drupal_strtolower($term->name), $options);
     }
   }
-
-  $block->content = theme('item_list', array('items' => $items));
-
+  // If there are no items to be shown hide the block.
+  if (count($items) > 0) {
+    $block->content = theme('item_list', array('items' => $items));
+  }
   return $block;
 }
 

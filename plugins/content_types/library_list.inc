@@ -23,6 +23,7 @@ function ding_content_library_list_content_type_render($subtype, $conf, $panel_a
   if (isset($context[0]->data)) {
     $selected_term = $context[0]->data;
     $suffix = '/' . $selected_term->tid;
+    $alias = drupal_lookup_path('alias', 'taxonomy/term/' . $selected_term->tid);
   }
   if (isset($context[1]->data)) {
     $library = $context[1]->data;
@@ -47,11 +48,26 @@ function ding_content_library_list_content_type_render($subtype, $conf, $panel_a
   }
 
   uasort($nodes, 'ding_content_library_list_sort_title');
-  $items = array($conf['type'] . $suffix => t('All libraries'));
+
+  if ($conf['type'] == 'news') {
+    $node_type = 'nyheder';
+  } elseif ($conf['type'] == 'events') {
+    $node_type = 'arrangementer';
+  }
+
+  if (isset($alias)) {
+    $items = array($alias => t('All libraries'));
+  } else {
+    $items = array($node_type . $suffix => t('All libraries'));
+  }
 
   foreach ($nodes as $node) {
     $uri = entity_uri('node', $node);
     $items[$uri['path'] . '/' . $conf['type'] . $suffix] = $node->title;
+
+    // TODO: Do we need this hardcoded URL?
+    // $uri =  'bibliotek/' . $node->nid . '/' . $node_type  . $suffix;
+    // $items[$uri] = $node->title;
   }
 
   // Generate the select box form.
@@ -77,12 +93,12 @@ function ding_content_library_list_select_library($form, &$form_state, $items, $
   $form = array();
   $form['labe_select_library'] = array(
     '#markup' => t('Choose library'),
-    '#prefix' => '<div class="label">',
-    '#suffix' => '</div>',
+    '#prefix' => '<span class="choose-library-label">',
+    '#suffix' => '</span>',
   );
   $form['select_library'] = array(
     '#type' => 'select',
-    '#prefix' => '<div class="rightcontainer">',
+    '#prefix' => '',
     '#title' => NULL,
     '#options' => $items,
     '#attributes' => array('onchange' => "form.submit('select_library');"),
@@ -90,8 +106,13 @@ function ding_content_library_list_select_library($form, &$form_state, $items, $
   );
   $form['submit'] = array(
     '#type' => 'submit',
-    '#prefix' => '<div class="library-list-show">',
-    '#suffix' => '</div></div>',
+    '#attributes' => array(
+      'class' => array(
+        'button',
+      ),
+    ),
+    '#prefix' => '',
+    '#suffix' => '',
     '#value' => t('Show'),
   );
   return $form;
