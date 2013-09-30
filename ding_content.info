@@ -16,7 +16,6 @@ dependencies[] = similarterms
 dependencies[] = strongarm
 dependencies[] = taxonomy
 dependencies[] = views
-dependencies[] = workbench
 dependencies[] = wysiwyg
 features[ctools][] = strongarm:strongarm:1
 features[features_api][] = api:1
