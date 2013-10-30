@@ -5,6 +5,7 @@ package = Ding!
 php = 5.2.4
 version = 7.x-1.15
 project = ding_content
+configure = admin/config/ding/category_menu
 dependencies[] = ctools
 dependencies[] = ding_page
 dependencies[] = ding_path_alias
