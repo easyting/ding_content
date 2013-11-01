@@ -7,11 +7,11 @@
       $('.relevant-nodes', context).click(function() {
         var element_settings = {};
         element_settings.url = $(this).attr('href');
-        element_settings.progress = { type: 'throbber' };
 
         if (!$(this).next().hasClass('item-list')) {
           var ajax = new Drupal.ajax(false, false, element_settings);
           ajax.eventResponse(ajax, {});
+          $(this).addClass('relevant-node-loading');
         }
 
         if ($(this).hasClass('relevant-nodes-expanded')) {
@@ -32,6 +32,7 @@
     var ele = $('.relevant-nodes-' + tid);
 
     ele.after(data);
+    ele.removeClass('relevant-node-loading');
 
     return;
   };
