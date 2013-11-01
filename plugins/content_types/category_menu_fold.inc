@@ -12,7 +12,10 @@ $plugin = array(
   'render callback' => 'ding_content_category_foldable_menu_render',
   'category' => t('Ding!'),
   'required context' => array(
-    new ctools_context_optional(t('Taxonomy term'), 'taxonomy_term')
+    new ctools_context_optional(t('Taxonomy term'), 'taxonomy_term'),
+  ),
+  'defaults' => array(
+    'type' => 'category',
   ),
 );
 
@@ -66,8 +69,8 @@ function ding_content_category_foldable_menu_render($subtype, $conf, $panel_args
       $options = array('attributes' => array('class' => array('relevant-nodes', 'relevant-nodes-' . $entry['category_tid'])));
 
       // It's either node page, where node category matches the term,
-      // or taxonomy page, where term arg mathes the term.
-      $active = (is_object($node) && $node->field_category[LANGUAGE_NONE][0]['tid'] == $entry['category_tid']) || ($arg->tid == $entry['category_tid']);
+      // or taxonomy page, where term arg matches the term.
+      $active = (is_object($node) && $node->field_category[LANGUAGE_NONE][0]['tid'] == $entry['category_tid']) || (is_object($arg) && $arg->tid == $entry['category_tid']);
       if ($active) {
         $options['attributes']['class'][] = 'active';
       }
