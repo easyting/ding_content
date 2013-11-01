@@ -397,8 +397,9 @@ function ding_content_get_attached_nodes($tid) {
 
   $query = db_select('field_data_field_category', 'fc');
   $query->join('node', 'n', 'n.nid = fc.revision_id');
-  $result = $query->fields('fc', array('revision_id'))
+  $result = $query->fields('fc', array('entity_id'))
     ->condition('fc.entity_type', 'node', '=')
+    ->condition('fc.bundle', array('ding_news', 'ding_event', 'ding_page'), 'IN')
     ->condition('fc.field_category_tid', $tid, '=')
     ->condition('n.status', 1, '=')
     ->range(0, $limit)
@@ -407,7 +408,7 @@ function ding_content_get_attached_nodes($tid) {
 
   $nids = array();
   foreach ($result as $entry) {
-    $nids[] = $entry->revision_id;
+    $nids[] = $entry->entity_id;
   }
 
   return $nids;
