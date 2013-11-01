@@ -88,7 +88,7 @@ function ding_content_category_foldable_menu_render($subtype, $conf, $panel_args
 
   drupal_add_js(drupal_get_path('module', 'ding_content') . '/js/ding_content.related.js', 'file');
   drupal_add_css('.pane-category-menu-fold .item-list > ul > li > a.relevant-node-loading {
-    background-image: url(' . drupal_get_path('module', 'ding_category') . '/img/loading.gif) !important;
+    background-image: url(/' . drupal_get_path('module', 'ding_content') . '/img/loading.gif) !important;
     background-position: 98% 50%;
     background-repeat: no-repeat;
   }', 'inline');
