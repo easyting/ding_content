@@ -82,3 +82,116 @@ function ding_content_media_browser_list() {
   drupal_json_output(array('media' => array_values($files)));
   exit();
 }
+
+/**
+ * Category foldable menu settings form.
+ */
+function ding_content_foldable_menu_admin($form, $form_state) {
+  $voc = taxonomy_vocabulary_machine_name_load('category');
+
+  if (is_object($voc)) {
+    $tree = taxonomy_get_tree($voc->vid);
+    $range = range(1, 10);
+
+    $form['category_hits'] = array(
+      '#type' => 'select',
+      '#title' => t('Number of nodes shows in expanded area'),
+      '#options' => array_combine($range, $range),
+      '#default_value' => variable_get('category_hits', 4),
+    );
+
+    $form['category_empty'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show empty categories'),
+      '#default_value' => variable_get('category_empty', FALSE),
+      '#description' => t('Show also the categories with no nodes attached to it.'),
+    );
+
+    $form['category_tree'] = array(
+      '#tree' => TRUE,
+      '#theme' => 'ding_content_category_table',
+    );
+
+    $defaults = variable_get('category_tree', array());
+    $c = count($tree);
+    for ($i = 0; $i < $c; $i++) {
+      $form['category_tree'][$i]['category_name'] = array(
+        '#type' => 'textfield',
+        '#value' => $tree[$i]->name,
+        '#disabled' => TRUE,
+      );
+
+      $form['category_tree'][$i]['category_expanded'] = array(
+        '#type' => 'checkbox',
+        '#default_value' => isset($defaults[$i]['category_expanded']) ? $defaults[$i]['category_expanded'] : FALSE,
+      );
+
+      $form['category_tree'][$i]['category_disabled'] = array(
+        '#type' => 'checkbox',
+        '#default_value' => isset($defaults[$i]['category_disabled']) ? $defaults[$i]['category_disabled'] : FALSE,
+      );
+
+      $form['category_tree'][$i]['category_weight'] = array(
+        '#type' => 'weight',
+        '#delta' => 10,
+        '#default_value' => isset($defaults[$i]['category_weight']) ? $defaults[$i]['category_weight'] : 0,
+        '#attributes' => array(
+          'class' => array('category-weight'),
+        )
+      );
+
+      $form['category_tree'][$i]['category_tid'] = array(
+        '#type' => 'hidden',
+        '#value' => $tree[$i]->tid,
+      );
+    }
+  }
+  else {
+    drupal_set_message(t('Seems there is no vocabulary with machine name `category`.'), 'error');
+  }
+
+  return system_settings_form($form);
+}
+
+/**
+ * Custom renderer for categroy menu admin form.
+ *
+ * Create a drag'n'drop weighted table.
+ *
+ * @see ding_content_foldable_menu_admin()
+ */
+function theme_ding_content_category_table($vars) {
+  $element = $vars['element'];
+
+  $rows = array();
+
+  $ch = array();
+  foreach (element_children($element) as $key) {
+    $ch[] = $element[$key];
+  }
+
+  usort($ch, '_ding_content_category_sort');
+
+  foreach ($ch as $ele) {
+    $rows[] = array(
+      'data' => array(
+        array('data' => render($ele['category_name'])),
+        array('data' => render($ele['category_expanded'])),
+        array('data' => render($ele['category_weight'])),
+        array('data' => render($ele['category_disabled'])),
+      ),
+      'class' => array('draggable'),
+    );
+  }
+
+  $header = array(
+    t('Category'),
+    t('Expanded'),
+    t('Weight'),
+    t('Hidden'),
+  );
+
+  drupal_add_tabledrag('ding-content-category-foldable', 'order', 'sibling', 'category-weight');
+
+  return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'ding-content-category-foldable')));
+}

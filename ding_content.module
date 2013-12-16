@@ -23,6 +23,27 @@ function ding_content_menu() {
     'file' => 'ding_content.admin.inc',
   );
 
+  $items['admin/config/ding/category_menu'] = array(
+    'title' => 'Category menu',
+    'description' => 'Configure category foldable menu settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('ding_content_foldable_menu_admin'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'ding_content.admin.inc',
+  );
+
+  $items['ding_content/relevant/nojs/%'] = array(
+    'page callback' => '_ding_content_relevant_content',
+    'page arguments' => array(2, 3),
+    'access arguments' => array('access content'),
+    'file' => 'ding_content.pages.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['ding_content/relevant/ajax/%'] = array(
+    'delivery callback' => 'ajax_deliver',
+  ) + $items['ding_content/relevant/nojs/%'];
+
   return $items;
 }
 
@@ -312,4 +333,117 @@ function ding_content_field_widget_form(&$form, &$form_state, $field, $instance,
   }
 
   return $return;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function ding_content_theme($existing, $type, $theme, $path) {
+  $hooks = array();
+
+  $hooks['ding_content_category_table'] = array(
+    'render element' => 'element',
+  );
+
+  return $hooks;
+}
+
+/**
+ * Custom sort function, to sort weighted defaults of the lately saved form.
+ *
+ * @see theme_ding_content_category_table()
+ * @see ding_content_foldable_menu_admin()
+ */
+function _ding_content_category_sort($a, $b) {
+  if ($a['category_weight'] == $b['category_weight']) {
+    return 0;
+  }
+
+  return ($a['category_weight'] < $b['category_weight']) ? -1 : 1;
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function ding_content_entity_info_alter(&$entity_info) {
+  $entity_info['node']['view modes'] += array(
+    'related_category_items' => array(
+      'label' => t('Category items'),
+      'custom settings' => TRUE,
+    ),
+  );
+}
+
+/**
+* Implements hook_preprocess_node().
+*/
+function ding_content_preprocess_node(&$vars) {
+  if($vars['view_mode'] == 'related_category_items') {
+    $vars['theme_hook_suggestions'][] = 'node__' . $vars['type'] . '__related_category_items';
+  }
+}
+
+/**
+ * Retrieve the node id's attached to a certain category term.
+ *
+ * @param int $tid
+ *   Term id.
+ *
+ * @return array
+ *   Array of node id's
+ */
+function ding_content_get_attached_nodes($tid) {
+  $limit = variable_get('category_hits', 4);
+
+  $query = db_select('field_data_field_category', 'fc');
+  $query->join('node', 'n', 'n.nid = fc.revision_id');
+  $result = $query->fields('fc', array('entity_id'))
+    ->condition('fc.entity_type', 'node', '=')
+    ->condition('fc.bundle', array('ding_news', 'ding_event', 'ding_page'), 'IN')
+    ->condition('fc.field_category_tid', $tid, '=')
+    ->condition('n.status', 1, '=')
+    ->range(0, $limit)
+    ->execute()
+    ->fetchAll();
+
+  $nids = array();
+  foreach ($result as $entry) {
+    $nids[] = $entry->entity_id;
+  }
+
+  return $nids;
+}
+
+/**
+ * Generate markup of nodes.
+ *
+ * @param array $nids
+ *   Set of node id's to be rendered.
+ *
+ * @return string
+ *   Markup of the nodes.
+ */
+function ding_content_attached_nodes_markup($nids = array()) {
+  $content = array();
+  $markup = '';
+
+  foreach ($nids as $nid) {
+    $node = node_load($nid);
+    $renderable = node_view($node, 'related_category_items');
+    $content[] = drupal_render($renderable);
+  }
+
+  if (!empty($content)) {
+    $markup = theme('item_list', array('items' => $content));
+
+    // node_load is statically cached.
+    // Also we pick the tid from first node. This doesn't matter,
+    // since all the nodes expected here have same category tid.
+    $node = node_load($nids[0]);
+    $term = taxonomy_term_load($node->field_category[LANGUAGE_NONE][0]['tid']);
+    $uri = entity_uri('taxonomy_term', $term);
+    $markup .= '<div class="more-link">' . l(t('More'), $uri['path']) . '</div>';
+  }
+
+  return $markup;
 }
