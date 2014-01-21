@@ -393,16 +393,49 @@ function ding_content_preprocess_node(&$vars) {
  *   Array of node id's
  */
 function ding_content_get_attached_nodes($tid) {
+  global $user;
+  $now = date('Y-m-d H:i:s');
   $limit = variable_get('category_hits', 4);
 
   $query = db_select('field_data_field_category', 'fc');
+
   $query->join('node', 'n', 'n.nid = fc.revision_id');
-  $result = $query->fields('fc', array('entity_id'))
+  // Left join, so it when it takes to nodes of types != event, it won't count.
+  $query->leftJoin('field_data_field_event_date', 'fd', 'n.nid = fd.revision_id');
+
+  $query->fields('fc', array('entity_id'))
     ->condition('fc.entity_type', 'node', '=')
-    ->condition('fc.bundle', array('ding_news', 'ding_event', 'ding_page'), 'IN')
     ->condition('fc.field_category_tid', $tid, '=')
-    ->condition('n.status', 1, '=')
-    ->range(0, $limit)
+    ->range(0, $limit);
+
+  // Both start date and end date are checked within "now or later" timespan,
+  // meaning that event is whether in the future or takes place now.
+  $db_date_or = db_or()
+    ->condition('fd.field_event_date_value', $now, '>=')
+    ->condition('fd.field_event_date_value2', $now, '>=');
+
+  // The above check is only viable for events.
+  $db_and = db_and()
+    ->condition('fc.bundle', 'ding_event', '=')
+    ->condition($db_date_or);
+
+  // The pages/news do not take into consideration the above check,
+  // so: (type = event AND event_date >= NOW) OR (type = news OR type = page)
+  $db_or = db_or()
+    ->condition($db_and)
+    ->condition('fc.bundle', array('ding_news', 'ding_page'), 'IN');
+
+  // The built condition goes into the query.
+  $query->condition($db_or);
+
+  // Let admin see any nodes, regardless of the status.
+  // So the actual result for users and admins may differ.
+  if(!in_array('administrator', $user->roles)) {
+    $query->condition('n.status', 1, '=');
+  }
+
+  $result = $query
+    ->orderBy('n.created', 'DESC')
     ->execute()
     ->fetchAll();
 

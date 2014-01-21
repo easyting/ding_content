@@ -107,6 +107,13 @@ function ding_content_foldable_menu_admin($form, $form_state) {
       '#description' => t('Show also the categories with no nodes attached to it.'),
     );
 
+    $form['category_foldable_enabled'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Foldable category menu'),
+      '#description' => t('Enable the collapsible category menu feature.'),
+      '#default_value' => variable_get('category_foldable_enabled', FALSE),
+    );
+
     $form['category_tree'] = array(
       '#tree' => TRUE,
       '#theme' => 'ding_content_category_table',
