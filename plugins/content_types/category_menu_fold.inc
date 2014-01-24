@@ -53,18 +53,9 @@ function ding_content_category_foldable_menu_render($subtype, $conf, $panel_args
       if ($entry['category_disabled']) {
         continue;
       }
-
-      if (!variable_get('category_empty')) {
-        $node_hits = db_select('field_data_field_category')
-          ->condition('field_category_tid', $entry['category_tid'], '=')
-          ->condition('entity_type', 'node')
-          ->countQuery()
-          ->execute()
-          ->fetchField();
-
-        if ($node_hits == 0) {
-          continue;
-        }
+      $nids = ding_content_get_attached_nodes($entry['category_tid']);
+      if (!variable_get('category_empty') && count($nids) == 0) {
+        continue;
       }
 
       $options = array('attributes' => array('class' => array('relevant-nodes', 'relevant-nodes-' . $entry['category_tid'])));
@@ -78,7 +69,6 @@ function ding_content_category_foldable_menu_render($subtype, $conf, $panel_args
 
       if ($entry['category_expanded']) {
         $options['attributes']['class'][] = 'relevant-nodes-expanded';
-        $nids = ding_content_get_attached_nodes($entry['category_tid']);
         $expanded_content = ding_content_attached_nodes_markup($nids);
       }
 
