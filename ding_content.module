@@ -388,11 +388,13 @@ function ding_content_preprocess_node(&$vars) {
  *
  * @param int $tid
  *   Term id.
+ * @param string $node_type
+ *   Seek for nodes only of that type.
  *
  * @return array
  *   Array of node id's
  */
-function ding_content_get_attached_nodes($tid) {
+function ding_content_get_attached_nodes($tid, $node_type = NULL) {
   global $user;
   $now = date('Y-m-d H:i:s');
   $limit = variable_get('category_hits', 4);
@@ -407,6 +409,11 @@ function ding_content_get_attached_nodes($tid) {
     ->condition('fc.entity_type', 'node', '=')
     ->condition('fc.field_category_tid', $tid, '=')
     ->range(0, $limit);
+
+  // Limit to a specific node type.
+  if ($node_type) {
+    $query->condition('fc.bundle', $node_type, '=');
+  }
 
   // Both start date and end date are checked within "now or later" timespan,
   // meaning that event is whether in the future or takes place now.
