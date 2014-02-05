@@ -43,8 +43,10 @@ function ding_content_category_foldable_menu_render($subtype, $conf, $panel_args
 
   if (count($defaults) > 0) {
     $node = NULL;
+    $type = NULL;
     if (arg(0) == 'node' && isset($panel_args[0])) {
       $node = node_load($panel_args[0]);
+      $type = $node->type;
     }
 
     foreach ($defaults as $entry) {
@@ -53,7 +55,7 @@ function ding_content_category_foldable_menu_render($subtype, $conf, $panel_args
       if ($entry['category_disabled']) {
         continue;
       }
-      $nids = ding_content_get_attached_nodes($entry['category_tid']);
+      $nids = ding_content_get_attached_nodes($entry['category_tid'], $type);
       if (!variable_get('category_empty') && count($nids) == 0) {
         continue;
       }
