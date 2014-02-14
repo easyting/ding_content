@@ -396,9 +396,18 @@ function ding_content_preprocess_node(&$vars) {
  */
 function ding_content_get_attached_nodes($tid, $node_type = NULL) {
   $limit = variable_get('category_hits', 4);
+  $display = 'page';
+
+  switch ($node_type) {
+    case 'ding_news':
+      $display = 'page_1';
+      break;
+    case 'ding_event':
+      $display = 'page_2';
+      break;
+  }
 
   $view = 'artesis_category_taxonomy_term';
-  $display = 'page';
   $view_object = views_get_view($view);
   $view_object->set_display($display);
   $view_object->set_arguments(array($tid));
