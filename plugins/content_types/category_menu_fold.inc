@@ -55,7 +55,9 @@ function ding_content_category_foldable_menu_render($subtype, $conf, $panel_args
       if ($entry['category_disabled']) {
         continue;
       }
+
       $nids = ding_content_get_attached_nodes($entry['category_tid'], $type);
+
       if (!variable_get('category_empty') && count($nids) == 0) {
         continue;
       }

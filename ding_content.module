@@ -395,60 +395,29 @@ function ding_content_preprocess_node(&$vars) {
  *   Array of node id's
  */
 function ding_content_get_attached_nodes($tid, $node_type = NULL) {
-  global $user;
-  $now = date('Y-m-d H:i:s');
   $limit = variable_get('category_hits', 4);
+  $display = 'page';
 
-  $query = db_select('field_data_field_category', 'fc');
-
-  $query->join('node', 'n', 'n.nid = fc.revision_id');
-  // Left join, so it when it takes to nodes of types != event, it won't count.
-  $query->leftJoin('field_data_field_event_date', 'fd', 'n.nid = fd.revision_id');
-
-  $query->fields('fc', array('entity_id'))
-    ->condition('fc.entity_type', 'node', '=')
-    ->condition('fc.field_category_tid', $tid, '=')
-    ->range(0, $limit);
-
-  // Limit to a specific node type.
-  if ($node_type) {
-    $query->condition('fc.bundle', $node_type, '=');
+  switch ($node_type) {
+    case 'ding_news':
+      $display = 'page_1';
+      break;
+    case 'ding_event':
+      $display = 'page_2';
+      break;
   }
 
-  // Both start date and end date are checked within "now or later" timespan,
-  // meaning that event is whether in the future or takes place now.
-  $db_date_or = db_or()
-    ->condition('fd.field_event_date_value', $now, '>=')
-    ->condition('fd.field_event_date_value2', $now, '>=');
-
-  // The above check is only viable for events.
-  $db_and = db_and()
-    ->condition('fc.bundle', 'ding_event', '=')
-    ->condition($db_date_or);
-
-  // The pages/news do not take into consideration the above check,
-  // so: (type = event AND event_date >= NOW) OR (type = news OR type = page)
-  $db_or = db_or()
-    ->condition($db_and)
-    ->condition('fc.bundle', array('ding_news', 'ding_page'), 'IN');
-
-  // The built condition goes into the query.
-  $query->condition($db_or);
-
-  // Let admin see any nodes, regardless of the status.
-  // So the actual result for users and admins may differ.
-  if(!in_array('administrator', $user->roles)) {
-    $query->condition('n.status', 1, '=');
-  }
-
-  $result = $query
-    ->orderBy('n.created', 'DESC')
-    ->execute()
-    ->fetchAll();
+  $view = 'artesis_category_taxonomy_term';
+  $view_object = views_get_view($view);
+  $view_object->set_display($display);
+  $view_object->set_arguments(array($tid));
+  $view_object->set_items_per_page($limit);
+  $view_object->execute();
+  $response = $view_object->result;
 
   $nids = array();
-  foreach ($result as $entry) {
-    $nids[] = $entry->entity_id;
+  foreach ($response as $resp) {
+    $nids[] = $resp->nid;
   }
 
   return $nids;
@@ -479,7 +448,7 @@ function ding_content_attached_nodes_markup($nids = array()) {
     // node_load is statically cached.
     // Also we pick the tid from first node. This doesn't matter,
     // since all the nodes expected here have same category tid.
-    $node = node_load($nids[0]);
+    $node = node_load(reset($nids));
     $term = taxonomy_term_load($node->field_category[LANGUAGE_NONE][0]['tid']);
     $uri = entity_uri('taxonomy_term', $term);
     $markup .= '<div class="more-link">' . l(t('More'), $uri['path']) . '</div>';
