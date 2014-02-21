@@ -28,7 +28,7 @@ function ding_content_menu() {
     'description' => 'Configure category foldable menu settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ding_content_foldable_menu_admin'),
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer category menu'),
     'file' => 'ding_content.admin.inc',
   );
 
@@ -45,6 +45,20 @@ function ding_content_menu() {
   ) + $items['ding_content/relevant/nojs/%'];
 
   return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function ding_content_permission() {
+  $perm = array();
+
+  $perm['administer category menu'] = array(
+    'title' => t('Category menu settings'),
+    'description' => t('Change the behavior of category menu'),
+  );
+
+  return $perm;
 }
 
 /**
@@ -171,8 +185,8 @@ function ding_content_media_browser_plugin_view($plugin_name, $params) {
           ),
         ),
         '#settings' => array(
-          'viewMode' => 'thumbnails',
-          'getMediaUrl' => url('ding_content/media'),
+        'viewMode' => 'thumbnails',
+        'getMediaUrl' => url('ding_content/media'),
         // We should probably change this to load dynamically when requested
         // via the JS file.
         ) + $params,
@@ -375,10 +389,10 @@ function ding_content_entity_info_alter(&$entity_info) {
 }
 
 /**
-* Implements hook_preprocess_node().
-*/
+ * Implements hook_preprocess_node().
+ */
 function ding_content_preprocess_node(&$vars) {
-  if($vars['view_mode'] == 'related_category_items') {
+  if ($vars['view_mode'] == 'related_category_items') {
     $vars['theme_hook_suggestions'][] = 'node__' . $vars['type'] . '__related_category_items';
   }
 }
