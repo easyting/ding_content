@@ -28,7 +28,7 @@ function ding_content_menu() {
     'description' => 'Configure category foldable menu settings',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ding_content_foldable_menu_admin'),
-    'access arguments' => array('administer site configuration'),
+    'access arguments' => array('administer category menu'),
     'file' => 'ding_content.admin.inc',
   );
 
@@ -45,6 +45,20 @@ function ding_content_menu() {
   ) + $items['ding_content/relevant/nojs/%'];
 
   return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function ding_content_permission() {
+  $perm = array();
+
+  $perm['administer category menu'] = array(
+    'title' => t('Category menu settings'),
+    'description' => t('Change the behavior of category menu'),
+  );
+
+  return $perm;
 }
 
 /**
@@ -171,8 +185,8 @@ function ding_content_media_browser_plugin_view($plugin_name, $params) {
           ),
         ),
         '#settings' => array(
-          'viewMode' => 'thumbnails',
-          'getMediaUrl' => url('ding_content/media'),
+        'viewMode' => 'thumbnails',
+        'getMediaUrl' => url('ding_content/media'),
         // We should probably change this to load dynamically when requested
         // via the JS file.
         ) + $params,
@@ -375,10 +389,10 @@ function ding_content_entity_info_alter(&$entity_info) {
 }
 
 /**
-* Implements hook_preprocess_node().
-*/
+ * Implements hook_preprocess_node().
+ */
 function ding_content_preprocess_node(&$vars) {
-  if($vars['view_mode'] == 'related_category_items') {
+  if ($vars['view_mode'] == 'related_category_items') {
     $vars['theme_hook_suggestions'][] = 'node__' . $vars['type'] . '__related_category_items';
   }
 }
@@ -388,27 +402,36 @@ function ding_content_preprocess_node(&$vars) {
  *
  * @param int $tid
  *   Term id.
+ * @param string $node_type
+ *   Seek for nodes only of that type.
  *
  * @return array
  *   Array of node id's
  */
-function ding_content_get_attached_nodes($tid) {
+function ding_content_get_attached_nodes($tid, $node_type = NULL) {
   $limit = variable_get('category_hits', 4);
+  $display = 'page';
 
-  $query = db_select('field_data_field_category', 'fc');
-  $query->join('node', 'n', 'n.nid = fc.revision_id');
-  $result = $query->fields('fc', array('entity_id'))
-    ->condition('fc.entity_type', 'node', '=')
-    ->condition('fc.bundle', array('ding_news', 'ding_event', 'ding_page'), 'IN')
-    ->condition('fc.field_category_tid', $tid, '=')
-    ->condition('n.status', 1, '=')
-    ->range(0, $limit)
-    ->execute()
-    ->fetchAll();
+  switch ($node_type) {
+    case 'ding_news':
+      $display = 'page_1';
+      break;
+    case 'ding_event':
+      $display = 'page_2';
+      break;
+  }
+
+  $view = 'artesis_category_taxonomy_term';
+  $view_object = views_get_view($view);
+  $view_object->set_display($display);
+  $view_object->set_arguments(array($tid));
+  $view_object->set_items_per_page($limit);
+  $view_object->execute();
+  $response = $view_object->result;
 
   $nids = array();
-  foreach ($result as $entry) {
-    $nids[] = $entry->entity_id;
+  foreach ($response as $resp) {
+    $nids[] = $resp->nid;
   }
 
   return $nids;
@@ -439,7 +462,7 @@ function ding_content_attached_nodes_markup($nids = array()) {
     // node_load is statically cached.
     // Also we pick the tid from first node. This doesn't matter,
     // since all the nodes expected here have same category tid.
-    $node = node_load($nids[0]);
+    $node = node_load(reset($nids));
     $term = taxonomy_term_load($node->field_category[LANGUAGE_NONE][0]['tid']);
     $uri = entity_uri('taxonomy_term', $term);
     $markup .= '<div class="more-link">' . l(t('More'), $uri['path']) . '</div>';
