@@ -21,11 +21,12 @@ function _ding_content_relevant_content($type, $tid) {
   if ($type == 'ajax') {
     $nids = ding_content_get_attached_nodes($tid);
     $markup = ding_content_attached_nodes_markup($nids);
+    $decoded_markup = html_entity_decode($markup);
 
     $commands = array();
     $commands[] = array(
       'command' => 'related_content_insert',
-      'data' => $markup,
+      'data' => $decoded_markup,
       'tid' => $tid,
     );
 
